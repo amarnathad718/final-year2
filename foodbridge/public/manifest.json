@@ -1,0 +1,17 @@
+{
+  "name": "FoodBridge - Smart Urban Food Redistribution Network",
+  "short_name": "FoodBridge",
+  "description": "Real-time urban food redistribution platform connecting donors, NGOs, volunteers, and communities.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#fffbeb",
+  "theme_color": "#047857",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/next.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}

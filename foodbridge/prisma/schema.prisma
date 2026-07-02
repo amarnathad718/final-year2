@@ -1,0 +1,166 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  DONOR
+  NGO
+  VOLUNTEER
+  ADMIN
+}
+
+enum DonationStatus {
+  POSTED
+  MATCHED
+  PICKED_UP
+  IN_TRANSIT
+  DELIVERED
+  EXPIRED
+  CANCELLED
+}
+
+model User {
+  id             String         @id @default(cuid())
+  name           String
+  email          String         @unique
+  passwordHash   String
+  role           Role
+  phone          String?
+  lat            Float?
+  lng            Float?
+  organization   String?
+  isVerified     Boolean        @default(false)
+  trustScore     Float          @default(3.5)
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  donations      Donation[]     @relation("DonorDonations")
+  assignments    Assignment[]   @relation("VolunteerAssignments")
+  ngoAssignments Assignment[]   @relation("NgoAssignments")
+  ratingsGiven   Rating[]       @relation("Rater")
+  ratingsRecv    Rating[]       @relation("Ratee")
+  notifications  Notification[]
+  verifications  Verification[] @relation("VerifiedBy")
+}
+
+model Donation {
+  id                 String         @id @default(cuid())
+  donorId            String
+  foodType           String
+  quantity           Int
+  quantityUnit       String
+  estimatedMeals     Int
+  expiryAt           DateTime
+  pickupAddress      String
+  lat                Float
+  lng                Float
+  imageUrl           String?
+  notes              String?
+  status             DonationStatus @default(POSTED)
+  spoilageRiskScore  Float          @default(0)
+  predictedDemandIdx Float          @default(0)
+  temperature        Float?         // Storage temperature in Celsius
+  humidity           Float?         // Storage humidity percentage
+  storageCondition   String?        // refrigerated, frozen, ambient, heated
+  handlingQuality    Float?         // 1-5 score
+  mlRiskScore        Float?         // ML-predicted risk score (0-1)
+  mlPredictionId     String?        @unique
+  createdAt          DateTime       @default(now())
+  updatedAt          DateTime       @updatedAt
+  donor              User           @relation("DonorDonations", fields: [donorId], references: [id])
+  assignments        Assignment[]
+  mlPrediction       MLSpoilagePrediction? @relation(fields: [mlPredictionId], references: [id])
+}
+
+model Assignment {
+  id                String         @id @default(cuid())
+  donationId        String
+  ngoId             String?
+  volunteerId       String?
+  assignedBy        String?
+  status            DonationStatus @default(MATCHED)
+  priorityScore     Float
+  routePlanJson     Json?
+  startedAt         DateTime?
+  deliveredAt       DateTime?
+  distanceKm        Float?
+  demandMultiplier  Float?
+  urgencyMultiplier Float?
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+  donation          Donation       @relation(fields: [donationId], references: [id])
+  ngo               User?          @relation("NgoAssignments", fields: [ngoId], references: [id])
+  volunteer         User?          @relation("VolunteerAssignments", fields: [volunteerId], references: [id])
+}
+
+model Rating {
+  id         String   @id @default(cuid())
+  raterId    String
+  rateeId    String
+  score      Int
+  comment    String?
+  createdAt  DateTime @default(now())
+  rater      User     @relation("Rater", fields: [raterId], references: [id])
+  ratee      User     @relation("Ratee", fields: [rateeId], references: [id])
+
+  @@unique([raterId, rateeId])
+}
+
+model Verification {
+  id           String   @id @default(cuid())
+  userId       String
+  verifierId   String
+  documentType String
+  status       String
+  createdAt    DateTime @default(now())
+  verifier     User     @relation("VerifiedBy", fields: [verifierId], references: [id])
+
+  @@index([userId])
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  title     String
+  body      String
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id])
+
+  @@index([userId, isRead])
+}
+
+model MLSpoilagePrediction {
+  id                      String         @id @default(cuid())
+  donationId              String         @unique
+  predictedExpiryDate     DateTime
+  riskScore               Float          // 0-1
+  riskLevel               String         // LOW, MEDIUM, HIGH, CRITICAL
+  hoursUntilSpoilage      Float
+  confidence              Float          // 0-1
+  modelVersion            String         @default("v1")
+  modelType               String         @default("neural_network") // neural_network or heuristic_fallback
+  
+  // Factor scores
+  temperatureFactor       Float?
+  humidityFactor          Float?
+  handlingQualityFactor   Float?
+  foodTypeInfluence       Float?
+  storageConditionImpact  Float?
+  
+  // Recommendations (stored as JSON array)
+  recommendations         String[]       @default([])
+  
+  // Metadata
+  accuracy                Float?         // Post-prediction accuracy if validated
+  validated               Boolean        @default(false)
+  validatedAt             DateTime?
+  createdAt               DateTime       @default(now())
+  updatedAt               DateTime       @updatedAt
+  
+  donation                Donation?
+}

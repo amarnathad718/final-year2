@@ -1,0 +1,170 @@
+@import "tailwindcss";
+
+:root {
+  --background: #fffbeb;
+  --foreground: #3f2c0c;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-geist-sans), "Segoe UI", sans-serif;
+}
+
+body :is(
+  [data-nextjs-toast],
+  button[data-nextjs-dev-tools-button='true'],
+  button[data-next-mark='true'],
+  button[aria-label='Open Next.js Dev Tools'],
+  .dev-tools-indicator,
+  .dev-tools-indicator-menu,
+  .dev-tools-indicator-inner,
+  .dev-tools-indicator-item,
+  .dev-tools-indicator-footer
+) {
+  display: none !important;
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #a16207 #fffbeb;
+}
+
+.pressable {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  transform: translateY(0) scale(1);
+  transition: transform 170ms cubic-bezier(0.2, 0.9, 0.2, 1), box-shadow 170ms cubic-bezier(0.2, 0.9, 0.2, 1), filter 170ms ease;
+  box-shadow: 0 11px 22px rgba(6, 95, 70, 0.2), 0 2px 0 rgba(0, 0, 0, 0.1);
+}
+
+.pressable::before {
+  content: "";
+  position: absolute;
+  inset: -2px;
+  border-radius: inherit;
+  background: radial-gradient(circle at 20% 10%, rgba(255, 255, 255, 0.32), transparent 36%), radial-gradient(circle at 85% 85%, rgba(34, 197, 94, 0.25), transparent 42%);
+  opacity: 0;
+  z-index: -1;
+  transition: opacity 170ms ease;
+}
+
+.pressable::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -140%;
+  width: 40%;
+  height: 100%;
+  background: linear-gradient(110deg, transparent 0%, rgba(255, 255, 255, 0.35) 50%, transparent 100%);
+  transform: skewX(-18deg);
+  transition: left 360ms ease;
+}
+
+.pressable:hover {
+  filter: saturate(1.16) contrast(1.06);
+  transform: translateY(-4px) scale(1.016);
+  box-shadow: 0 18px 32px rgba(6, 95, 70, 0.24), 0 3px 0 rgba(0, 0, 0, 0.12);
+}
+
+.pressable:hover::before {
+  opacity: 1;
+}
+
+.pressable:hover::after {
+  left: 130%;
+}
+
+.pressable:active {
+  transform: translateY(1px) scale(0.992);
+  box-shadow: 0 8px 14px rgba(6, 95, 70, 0.18), 0 1px 0 rgba(0, 0, 0, 0.12);
+}
+
+.pressable:focus-visible {
+  outline: 3px solid rgba(16, 185, 129, 0.42);
+  outline-offset: 2px;
+}
+
+.btn-primary {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(5, 110, 78, 0.88);
+  background: linear-gradient(135deg, #0f8a62 0%, #0d7a5d 42%, #0a6b54 70%, #074b41 100%);
+  background-size: 140% 140%;
+  background-position: 0% 50%;
+  color: #ecfdf5;
+  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.14);
+  box-shadow: 0 14px 28px rgba(6, 95, 70, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.24), inset 0 -1px 0 rgba(0, 0, 0, 0.12);
+}
+
+.btn-primary::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(110deg, transparent 18%, rgba(255, 255, 255, 0.32) 50%, transparent 82%);
+  transform: translateX(-140%);
+  transition: transform 360ms ease;
+  pointer-events: none;
+}
+
+.btn-primary:hover::before {
+  transform: translateX(140%);
+}
+
+.btn-secondary {
+  border: 1px solid rgba(71, 85, 105, 0.28);
+  background: linear-gradient(180deg, #ffffff 0%, #edf2f7 58%, #dde5ef 100%);
+  color: #1e293b;
+  box-shadow: 0 10px 22px rgba(30, 41, 59, 0.14), inset 0 1px 0 rgba(255, 255, 255, 0.7);
+}
+
+.btn-pill {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(5, 150, 105, 0.24);
+  background: linear-gradient(180deg, #f8fffc 0%, #effdf6 100%);
+  color: #1f2937;
+  box-shadow: 0 8px 16px rgba(5, 150, 105, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.7);
+}
+
+.btn-pill::before {
+  content: "";
+  position: absolute;
+  inset: -2px;
+  border-radius: inherit;
+  background: radial-gradient(circle at 16% 20%, rgba(16, 185, 129, 0.25), transparent 38%);
+  opacity: 0;
+  transition: opacity 180ms ease;
+  z-index: -1;
+}
+
+.btn-primary:hover {
+  border-color: rgba(6, 95, 70, 0.95);
+  background-position: 100% 50%;
+  filter: brightness(1.06);
+  box-shadow: 0 20px 34px rgba(6, 95, 70, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.24), inset 0 -1px 0 rgba(0, 0, 0, 0.14);
+}
+
+.btn-secondary:hover {
+  border-color: rgba(71, 85, 105, 0.35);
+  filter: brightness(1.03);
+  box-shadow: 0 14px 26px rgba(30, 41, 59, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.8);
+}
+
+.btn-pill:hover {
+  border-color: rgba(5, 150, 105, 0.32);
+  color: #065f46;
+  box-shadow: 0 11px 20px rgba(5, 150, 105, 0.24), inset 0 1px 0 rgba(255, 255, 255, 0.82);
+}
+
+.btn-pill:hover::before {
+  opacity: 1;
+}
