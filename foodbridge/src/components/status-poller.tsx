@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useRealtime } from "@/hooks/useRealtime";
 
 type Assignment = {
   id: string;
@@ -27,7 +28,30 @@ type Assignment = {
 export function StatusPoller() {
   const [items, setItems] = useState<Assignment[]>([]);
   const [error, setError] = useState<string>("");
+  const [wsConnected, setWsConnected] = useState(false);
 
+  // Initialize real-time WebSocket with fallback to polling
+  const { isConnected, emit } = useRealtime({
+    onUpdate: (data) => {
+      console.log("Real-time update received:", data);
+      // Update specific assignment in the list
+      setItems((prev) =>
+        prev.map((item) =>
+          item.id === data.assignment?.id ? { ...item, ...data.assignment } : item
+        )
+      );
+    },
+    onNotification: (notification) => {
+      console.log("Notification received:", notification);
+      // You can trigger a toast or notification UI here
+    },
+  });
+
+  useEffect(() => {
+    setWsConnected(isConnected);
+  }, [isConnected]);
+
+  // Fallback: polling every 10 seconds if WebSocket is not available
   useEffect(() => {
     let timer: NodeJS.Timeout;
 
@@ -43,7 +67,8 @@ export function StatusPoller() {
       } catch (err) {
         setError(err instanceof Error ? err.message : "Unknown polling error");
       } finally {
-        timer = setTimeout(pull, 10000);
+        // Use longer polling interval if WebSocket is connected
+        timer = setTimeout(pull, wsConnected ? 30000 : 10000);
       }
     };
 
@@ -52,7 +77,7 @@ export function StatusPoller() {
     return () => {
       if (timer) clearTimeout(timer);
     };
-  }, []);
+  }, [wsConnected]);
 
   const latest = useMemo(() => items.slice(0, 6), [items]);
   const highRiskItems = useMemo(
@@ -77,8 +102,15 @@ export function StatusPoller() {
 
   return (
     <section className="rounded-2xl border border-amber-950/10 bg-white/80 p-5 shadow-sm">
-      <h3 className="text-lg font-semibold text-amber-950">Live Pickup and Delivery Tracking (Polling)</h3>
-      <p className="mt-1 text-sm text-amber-900/70">Updates every 10 seconds for active assignments.</p>
+      <div className="flex items-center justify-between">
+        <h3 className="text-lg font-semibold text-amber-950">
+          Live Pickup and Delivery Tracking
+          {wsConnected && <span className="ml-2 inline-block h-2 w-2 rounded-full bg-green-500" title="WebSocket Connected" />}
+        </h3>
+        <span className="text-xs font-medium text-amber-900/70">
+          {wsConnected ? "Real-time (WebSocket)" : "Updates every 10 seconds (Polling)"}
+        </span>
+      </div>
       {error ? <p className="mt-3 text-sm text-red-700">{error}</p> : null}
 
       {highRiskItems.length ? (
